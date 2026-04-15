@@ -1,0 +1,8 @@
+# Root level gitignore
+node_modules/
+backend/target/
+frontend/dist/
+.DS_Store
+.idea/
+.vscode/
+*.log

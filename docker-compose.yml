@@ -1,0 +1,69 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Online Event Booking System – Docker Compose
+#
+# Services:
+#   db       → PostgreSQL 15 database
+#   backend  → Spring Boot API (built from ./backend/Dockerfile)
+#
+# Usage:
+#   Start everything  : docker-compose up --build
+#   Run in background : docker-compose up --build -d
+#   Stop everything   : docker-compose down
+#   Wipe DB volume    : docker-compose down -v
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── PostgreSQL Database ────────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: event_booking_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: event_booking_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"           # expose to host for tools like pgAdmin / DBeaver
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # persistent storage
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d event_booking_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── Spring Boot Backend ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend          # path to the Dockerfile
+      dockerfile: Dockerfile
+    container_name: event_booking_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy  # wait until Postgres is ready
+    environment:
+      # Datasource – points to the 'db' service by its service name
+      DB_URL: jdbc:postgresql://db:5432/event_booking_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      # JWT – override this with a strong secret in production!
+      JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      JWT_EXPIRATION_MS: 86400000
+    ports:
+      - "8080:8080"
+    # Optional: limit container resources
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Named volume – data survives container restarts / rebuilds
+# ─────────────────────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
