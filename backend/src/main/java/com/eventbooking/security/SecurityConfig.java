@@ -55,16 +55,16 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Allow localhost for development and an optional environment-provided frontend URL
+        // Allow localhost for development and the production Render URL
         configuration.setAllowedOrigins(List.of(
             "http://localhost:5173", 
             "http://localhost:3000",
-            "*" // Temporarily allow all for easier initial deployment debugging
+            "https://online-event-booking-system-3428.onrender.com"
         ));
         
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept"));
-        configuration.setAllowCredentials(false); // Must be false if "*" is used as an origin
+        configuration.setAllowCredentials(true); 
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
