@@ -38,6 +38,9 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
 
+# Create a directory for H2 database storage and set permissions
+RUN mkdir /app/data && chown appuser:appgroup /app/data
+
 # Copy only the fat JAR from the builder stage
 COPY --from=builder /app/target/backend-0.0.1-SNAPSHOT.jar app.jar
 
